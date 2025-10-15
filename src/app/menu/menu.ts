@@ -2,7 +2,7 @@ import { Component, computed, input, output, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 import { MenuItem } from "./menu-item/menu-item";
-import type { MenuItemModel } from "./menuItem.model";
+import type { MenuDataModel, MenuItemModel } from "./menuItem.model";
 
 @Component({
 	selector: "app-menu",
@@ -10,9 +10,7 @@ import type { MenuItemModel } from "./menuItem.model";
 	templateUrl: "./menu.html",
 })
 export class Menu {
-	menuData = input<MenuItemModel[]>([]);
-	mainHeaderText = input("Main Header");
-	subHeaderText = input("Sub Header");
+	menuData = input<MenuDataModel>({} as MenuDataModel);
 
 	filter = signal("");
 
@@ -65,5 +63,5 @@ export class Menu {
 		this.onProfileClicked.emit();
 	}
 
-	filteredItems = computed(() => this.menuDataFiltered(this.menuData(), this.filter()));
+	filteredItems = computed(() => this.menuDataFiltered(this.menuData().menuItems, this.filter()));
 }

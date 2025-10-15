@@ -6,3 +6,9 @@ export type MenuItemModel = {
 	isFolder: boolean;
 	items: MenuItemModel[];
 };
+
+export type MenuDataModel = {
+  mainHeaderText: string;
+  subHeaderText: string;
+  menuItems: MenuItemModel[];
+}

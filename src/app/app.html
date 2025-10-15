@@ -1,30 +1,89 @@
 <div class="w-screen h-screen bg-slate-100 flex flex-col items-stretch">
-    <app-menu class="fixed top-0 left-0 h-full w-90 z-20 bg-white shadow-xl ring-1 ring-black/5
-           transform transition-transform duration-300 ease-in-out" [menuData]="menuData"
-        [mainHeaderText]="mainHeaderText" [subHeaderText]="subHeaderText" (onCloseClicked)="toggleMenu(false)"
-        [class.-translate-x-full]="!isMenuOpen()" (onItemClicked)="menuItemClicked($event)"></app-menu>
+  <app-menu class="fixed top-0 left-0 h-full w-90 z-20 bg-white shadow-xl ring-1 ring-black/5
+           transform transition-transform duration-300 ease-in-out" [menuData]="menuData()"
+    (onCloseClicked)="toggleMenu(false)" [class.-translate-x-full]="!isMenuOpen()"
+    (onItemClicked)="menuItemClicked($event)"></app-menu>
 
-    <!-- Backdrop -->
-    <div class="fixed inset-0 z-10 bg-slate-900/40 transition-opacity duration-300" [class.opacity-0]="!isMenuOpen()"
-        [class.pointer-events-none]="!isMenuOpen()" (click)="toggleMenu(false)">
-    </div>
+  <!-- Backdrop -->
+  <div class="fixed inset-0 z-10 bg-slate-900/40 transition-opacity duration-300" [class.opacity-0]="!backdropVisible()"
+    [class.pointer-events-none]="!backdropVisible()" (click)="onBackdropClick()">
+  </div>
 
-    <header class="h-14 shrink-0 bg-white border-b border-slate-200
+  <header class="h-14 shrink-0 bg-white border-b border-slate-200
                  flex items-center justify-between px-3">
-        <div class="flex items-center gap-2">
-            <!-- Menu button -->
-            <button type="button" class="size-9 grid place-items-center rounded-lg ring-1 ring-slate-300
-                     hover:bg-slate-100 active:scale-95 transition" aria-label="Open menu"
-                [attr.aria-expanded]="isMenuOpen()" aria-controls="app-sidebar" (click)="toggleMenu(true)">
-                <fa-icon [icon]="bars"></fa-icon>
-            </button>
+    <div class="flex items-center gap-2">
+      <button type="button" class="size-9 bg-slate-200 grid place-items-center rounded-lg ring-1 ring-slate-300
+                     hover:bg-slate-400 active:scale-95 transition" aria-label="Open menu"
+        [attr.aria-expanded]="isMenuOpen()" aria-controls="app-sidebar" (click)="toggleMenu(true)">
+        <fa-icon [icon]="bars"></fa-icon>
+      </button>
 
-        </div>
-
-    </header>
-
-    <div class="flex-1 p-2">
-        <router-outlet></router-outlet>
     </div>
+
+    <div class="flex items-center gap-2">
+
+      <button type="button" class="size-9 bg-green-100 grid place-items-center rounded-lg ring-1 ring-slate-300
+                     hover:bg-green-400 active:scale-95 transition" aria-label="Add row" (click)="createClicked()">
+        <fa-icon [icon]="plus"></fa-icon>
+      </button>
+
+      <button type="button" class="size-9 bg-red-100 grid place-items-center rounded-lg ring-1 ring-slate-300
+                     hover:bg-red-400 active:scale-95 transition" aria-label="Remove row" (click)="deleteClicked()">
+        <fa-icon [icon]="trash"></fa-icon>
+      </button>
+
+    </div>
+
+  </header>
+
+  <div class="flex-1 p-2">
+    @if (selectedMneuItem() === null) {
+    <div class="w-full h-full grid place-items-center text-slate-400">
+      <p class="text-lg">Select a menu item to load data</p>
+    </div>
+    } @else {
+    <app-ag-table [inputRowData]="rowData()" (rowClicked)="rowClicked($event)"></app-ag-table>
+    }
+  </div>
+
+
+  @if (isCreateOpen()) {
+  <div class="fixed inset-0 z-30 grid place-items-center p-4" role="dialog" aria-modal="true"
+    aria-labelledby="createDialogTitle">
+    <div class="
+        w-full
+        sm:max-w-xl md:max-w-2xl lg:max-w-3xl
+        sm:rounded-xl
+      bg-white shadow-2xl ring-1 ring-black/5
+        focus:outline-none
+        max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)]
+        flex flex-col
+      " (click)="$event.stopPropagation()">
+
+      <!-- Sticky header inside the panel -->
+      <div class="border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0">
+        <h2 id="createDialogTitle" class="text-base font-semibold text-slate-800">Create item</h2>
+        <button type="button"
+          class="size-8 grid place-items-center bg-red-100 rounded-md ring-1 ring-slate-300 hover:bg-red-400 active:scale-95 transition"
+          (click)="isCreateOpen.set(false)" aria-label="Close create dialog">
+          <fa-icon [icon]="close"></fa-icon>
+        </button>
+      </div>
+
+      <!-- Scrollable content area -->
+      <div class="p-4 overflow-y-auto">
+        <survey [model]="surveyModel"></survey>
+      </div>
+
+      <!-- Optional sticky footer -->
+      <!--
+      <div class="border-t border-slate-200 px-4 py-3 flex items-center justify-end gap-2 shrink-0">
+        ...
+      </div>
+      -->
+    </div>
+  </div>
+  }
+
 
 </div>
