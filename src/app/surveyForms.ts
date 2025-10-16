@@ -151,6 +151,7 @@ export const createPurchaseSurveyJson = {
 					placeholder: "Select a supplier",
 					choicesByUrl: {
 						url: `${baseUrl}/get-suppliers`,
+						path: "data",
 						valueName: "id",
 						titleName: "name",
 					},
@@ -202,6 +203,7 @@ export const createPurchaseSurveyJson = {
 							placeholder: "Select a material",
 							choicesByUrl: {
 								url: `${baseUrl}/get-raw-materials`,
+								path: "data",
 								valueName: "id",
 								titleName: "name",
 							},
@@ -262,6 +264,7 @@ export const createSaleSurveyJson = {
 					placeholder: "Select a customer",
 					choicesByUrl: {
 						url: `${baseUrl}/get-customers`,
+						path: "data",
 						valueName: "id",
 						titleName: "name",
 					},
@@ -307,11 +310,12 @@ export const createSaleSurveyJson = {
 					templateElements: [
 						{
 							type: "dropdown",
-							name: "_materialId",
+							name: "materialId",
 							title: "Material (filter)",
 							placeholder: "Optional: choose material to filter lots",
 							choicesByUrl: {
 								url: `${baseUrl}/get-all-products`,
+								path: "data",
 								valueName: "id",
 								titleName: "name",
 							},
@@ -322,9 +326,10 @@ export const createSaleSurveyJson = {
 							title: "Lot",
 							isRequired: true,
 							placeholder: "Select a lot",
-							dependsOn: ["_materialId"],
+							dependsOn: ["materialId"],
 							choicesByUrl: {
-								url: `${baseUrl}/get-material-lots/{panel._materialId}`,
+								url: `${baseUrl}/get-material-lots/{panel.materialId}`,
+								path: "data",
 								valueName: "id",
 								titleName: "lot",
 							},
@@ -361,6 +366,7 @@ export const createProductionSurveyJson = {
 					placeholder: "Select a recipe",
 					choicesByUrl: {
 						url: `${baseUrl}/get-recipes`,
+						path: "data",
 						valueName: "id",
 						titleName: "name",
 					},
@@ -416,9 +422,85 @@ export const createProductionSurveyJson = {
 							visibleIf: "{panel.materialId} notempty",
 							choicesByUrl: {
 								url: `${baseUrl}/get-material-lots/{panel.materialId}`,
+								path: "data",
 								valueName: "id",
 								titleName: "lot",
 							},
+						},
+					],
+				},
+			],
+		},
+	],
+};
+
+export const createRecipeSurveyJson = {
+	title: "Create Recipe",
+	description: "Enter recipe details and its ingredient lines",
+	showQuestionNumbers: "off",
+	pages: [
+		{
+			name: "header",
+			elements: [
+				{
+					type: "text",
+					name: "name",
+					title: "Recipe Name",
+					isRequired: true,
+					maxLength: 200,
+					placeholder: "e.g. Chocolate Bar 70%",
+				},
+				{
+					type: "dropdown",
+					name: "specialItemId",
+					title: "Finished Product",
+					isRequired: true,
+					placeholder: "Select a special item",
+					choicesByUrl: {
+						url: `${baseUrl}/get-special-products`,
+						path: "data",
+						valueName: "id",
+						titleName: "name",
+					},
+				},
+			],
+		},
+		{
+			name: "lines",
+			elements: [
+				{
+					type: "paneldynamic",
+					name: "recipeLine",
+					title: "Ingredients",
+					description: "Add one or more ingredient lines",
+					isRequired: true,
+					minPanelCount: 1,
+					panelAddText: "Add ingredient",
+					panelRemoveText: "Remove",
+					renderMode: "list",
+					templateElements: [
+						{
+							type: "dropdown",
+							name: "materialId",
+							title: "Material",
+							isRequired: true,
+							placeholder: "Select a raw material",
+							dependsOn: ["specialItemId"],
+							choicesByUrl: {
+								url: `${baseUrl}/get-all-products-except/{specialItemId}`,
+								path: "data",
+								valueName: "id",
+								titleName: "name",
+							},
+						},
+						{
+							type: "text",
+							name: "qty",
+							title: "Quantity",
+							isRequired: true,
+							inputType: "number",
+							min: 0.000001,
+							placeholder: "e.g. 1.5",
 						},
 					],
 				},

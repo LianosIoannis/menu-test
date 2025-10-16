@@ -95,5 +95,39 @@ export const menuData: MenuDataModel = {
 				},
 			],
 		},
+		{
+			id: "laboratory",
+			text: "Laboratory",
+			icon: "flask",
+			iconColor: "text-cyan-400",
+			isFolder: true,
+			items: [
+				{
+					id: "recipes",
+					text: "Recipes",
+					icon: "book-open",
+					iconColor: "text-lime-400",
+					isFolder: false,
+					items: [],
+				},
+			],
+		},
+		{
+			id: "reports",
+			text: "Reports",
+			icon: "chart-bar",
+			iconColor: "text-emerald-400",
+			isFolder: true,
+			items: [
+				{
+					id: "lot-balance",
+					text: "Lot Balance",
+					icon: "balance-scale",
+					iconColor: "text-yellow-400",
+					isFolder: false,
+					items: [],
+				},
+			],
+		},
 	],
 };

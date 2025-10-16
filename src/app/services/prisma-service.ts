@@ -1,23 +1,41 @@
 import { Injectable } from "@angular/core";
 import { baseUrl } from "../environment";
 
+export type ApiResponse = {
+	success: boolean;
+	data?: any;
+	error?: string;
+};
+
 @Injectable({
 	providedIn: "root",
 })
 export class DataService {
-	async getPrismaData(key: string) {
-		const res = await fetch(`${baseUrl}/${key}`);
-		return await res.json();
+	async getPrismaData(key: string): Promise<ApiResponse> {
+		try {
+			const res = await fetch(`${baseUrl}/${key}`);
+			const result = (await res.json()) as ApiResponse;
+			console.dir(result);
+			return result;
+		} catch {
+			return { success: false, error: "No connection" };
+		}
 	}
 
-	async deletePrismaData(key: string, id: number) {
-		const res = await fetch(`${baseUrl}/${key}/${id}`, {
-			method: "DELETE",
-		});
-		return await res.json();
+	async deletePrismaData(key: string, id: number): Promise<ApiResponse> {
+		try {
+			const res = await fetch(`${baseUrl}/${key}/${id}`, {
+				method: "DELETE",
+			});
+			const result = (await res.json()) as ApiResponse;
+			console.dir(result);
+			return result;
+		} catch {
+			return { success: false, error: "No connection" };
+		}
 	}
 
-	async postPrismaData(key: string, data: any) {
+	async postPrismaData(key: string, data: any): Promise<ApiResponse> {
 		try {
 			const res = await fetch(`${baseUrl}/${key}`, {
 				method: "POST",
@@ -26,10 +44,11 @@ export class DataService {
 				},
 				body: JSON.stringify(data),
 			});
-			return await res.json();
-		} catch (error) {
-      console.error("Error posting data:", error);
-			return null;
+			const result = (await res.json()) as ApiResponse;
+			console.dir(result);
+			return result;
+		} catch {
+			return { success: false, error: "No connection" };
 		}
 	}
 }

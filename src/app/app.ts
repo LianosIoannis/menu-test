@@ -75,29 +75,46 @@ export class App {
 	}
 
 	async createClicked() {
-		const surveyForm = menuDataMap[this.selectedMneuItem()?.id as MenuId].create.surveyForm;
+		const selectedMenuItemId = this.selectedMneuItem()?.id as MenuId;
+
+		const menuDataMapValues = menuDataMap()[selectedMenuItemId];
+		if (!menuDataMapValues || !menuDataMap()[this.selectedMneuItem()?.id as MenuId].create.endpoint) {
+			return;
+		}
+
+		const surveyForm = menuDataMapValues.create.surveyForm;
+		const surveyFunction = menuDataMapValues.create.surveyFunction;
 
 		this.surveyModel = new Model(surveyForm);
 
 		this.surveyModel.applyTheme(PlainDarkPanelless);
 		this.isCreateOpen.set(true);
-		this.surveyModel.onComplete.add(this.onSurveyComplete);
 
-		if (this.selectedMneuItem()?.id === "production-documents") {
-			this.surveyModel.onValueChanged.add(async (_, options) => {
-				if (options.name === "recipeId" && options.value) {
-					const lines = await this.prismaService.getPrismaData(`get-recipe-materials/${options.value}`);
-
-					this.surveyModel.setValue(
-						"ingredients",
-						lines.map((line: any) => ({
-							materialId: line.id,
-							materialTitle: line.name,
-						})),
-					);
-				}
-			});
+		if (surveyFunction && surveyFunction instanceof Function) {
+			surveyFunction(this.surveyModel, this.prismaService);
 		}
+
+		this.surveyModel.onComplete.add(async (sender: Model) => {
+			const data = sender.data as Record<string, unknown>;
+
+			console.dir(data);
+
+			const result = await this.prismaService.postPrismaData(
+				menuDataMap()[this.selectedMneuItem()?.id as MenuId].create.endpoint,
+				data,
+			);
+
+			if (result.success) {
+				this.toastrService.success("Item created successfully", "Success");
+				await this.getData();
+			} else {
+				this.toastrService.error("Failed to create item", "Error");
+			}
+
+			this.isCreateOpen.set(false);
+
+			sender.clear(false, true);
+		});
 	}
 
 	rowClicked($event: any) {
@@ -111,51 +128,54 @@ export class App {
 
 		const id = this.selectedRowData().id;
 
+		if (!id) {
+			return;
+		}
+
+		const selectedMenuItemId = this.selectedMneuItem()?.id as MenuId;
+
+		const menuDataMapValues = menuDataMap()[selectedMenuItemId];
+		if (!menuDataMapValues || !menuDataMapValues.delete) {
+			return;
+		}
+
 		this.showSpinner();
-		const _ = await this.prismaService.deletePrismaData(menuDataMap[this.selectedMneuItem()?.id as MenuId].delete, id);
+
+		const result = await this.prismaService.deletePrismaData(menuDataMapValues.delete, id);
+
+		if (result.success) {
+			this.toastrService.success(`Deleted item with ID ${id}`, "Item Deleted");
+			await this.getData();
+		} else {
+			this.toastrService.error("Failed to delete item", "Error");
+		}
 		this.hideSpinner();
 
-		this.toastrService.success(`Deleted item with ID ${id}`, "Item Deleted");
-		await this.showData();
+		await this.getData();
 	}
 
 	async menuItemClicked(item: MenuItemModel) {
 		this.selectedMneuItem.set(item);
-		await this.showData();
+		await this.getData();
 		this.toggleMenu(false);
 	}
 
-	async showData() {
+	async getData() {
 		this.showSpinner();
-		const data = await this.prismaService.getPrismaData(menuDataMap[this.selectedMneuItem()?.id as MenuId].get);
-		this.hideSpinner();
+		const data = await this.prismaService.getPrismaData(menuDataMap()[this.selectedMneuItem()?.id as MenuId].get);
 
-		this.toastrService.success(`Loaded ${data.length} items`, "Data Loaded");
-		this.rowData.set(data);
-	}
-
-	async sleep(ms: number) {
-		return new Promise((resolve) => setTimeout(resolve, ms));
-	}
-
-	onSurveyComplete = async (sender: Model) => {
-		const data = sender.data as Record<string, unknown>;
-
-		console.dir(data);
-
-		const result = await this.prismaService.postPrismaData(
-			menuDataMap[this.selectedMneuItem()?.id as MenuId].create.endpoint,
-			data,
-		);
-		if (result) {
-      console.dir(result);
-			await this.showData();
-		} else {
-			this.toastrService.error("Failed to create item", "Error");
+		if (data.error === "No connection") {
+			this.toastrService.error("Failed to connect to the server", "Connection Error");
 		}
 
-		this.isCreateOpen.set(false);
+		if (data.success && data.data) {
+			this.showData(data.data || []);
+		}
 
-		sender.clear(false, true);
-	};
+		this.hideSpinner();
+	}
+
+	showData(data: any) {
+		this.rowData.set(data);
+	}
 }
