@@ -48,7 +48,7 @@
 
 
   @if (isCreateOpen()) {
-  <div class="fixed inset-0 z-30 grid place-items-center p-4" role="dialog" aria-modal="true"
+  <div class="fixed inset-0 z-20 grid place-items-center p-4" role="dialog" aria-modal="true"
     aria-labelledby="createDialogTitle">
     <div class="
         w-full
@@ -60,9 +60,8 @@
         flex flex-col
       " (click)="$event.stopPropagation()">
 
-      <!-- Sticky header inside the panel -->
       <div class="border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0">
-        <h2 id="createDialogTitle" class="text-base font-semibold text-slate-800">Create item</h2>
+        <h2 id="createDialogTitle" class="text-base font-semibold text-slate-800"></h2>
         <button type="button"
           class="size-8 grid place-items-center bg-red-100 rounded-md ring-1 ring-slate-300 hover:bg-red-400 active:scale-95 transition"
           (click)="isCreateOpen.set(false)" aria-label="Close create dialog">
@@ -71,19 +70,15 @@
       </div>
 
       <!-- Scrollable content area -->
-      <div class="p-4 overflow-y-auto">
+      <div class="overflow-y-auto">
         <survey [model]="surveyModel"></survey>
       </div>
 
-      <!-- Optional sticky footer -->
-      <!--
-      <div class="border-t border-slate-200 px-4 py-3 flex items-center justify-end gap-2 shrink-0">
-        ...
-      </div>
-      -->
     </div>
   </div>
   }
 
 
 </div>
+
+<ngx-spinner name="app-spinner" type="ball-atom"></ngx-spinner>

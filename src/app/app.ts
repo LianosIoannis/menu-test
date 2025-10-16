@@ -2,113 +2,51 @@ import { Component, computed, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
 import { faBars, faClose, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { NgxSpinnerModule, NgxSpinnerService } from "ngx-spinner";
+import { ToastrService } from "ngx-toastr";
 import { SurveyModule } from "survey-angular-ui";
 import { Model } from "survey-core";
+import { PlainDarkPanelless } from "survey-core/themes";
 import { AgTable } from "./ag-table/ag-table";
 import { Menu } from "./menu/menu";
 import type { MenuItemModel } from "./menu/menuItem.model";
 import { menuData } from "./menuData";
+import { type MenuId, menuDataMap } from "./services/dataMap";
 import { DataService } from "./services/prisma-service";
-
-const createSurveyJson = {
-	title: "Create item",
-	description: "Fill in the details below",
-	pages: [
-		{
-			name: "p1",
-			elements: [
-				{ type: "text", name: "name", title: "Name", isRequired: true, maxLength: 100 },
-				{ type: "text", name: "code", title: "Code", isRequired: true },
-				{
-					type: "dropdown",
-					name: "category",
-					title: "Category",
-					isRequired: true,
-					choices: [
-						{ value: "A", text: "Category A – Standard" },
-						{ value: "B", text: "Category B – Premium" },
-						{ value: "C", text: "Category C – Limited" },
-					],
-					hasOther: true,
-					otherText: "Other (please specify)",
-				},
-
-				// ⬇️ Add this block
-				{
-					type: "paneldynamic",
-					name: "reasons",
-					title: "Reasons",
-					description: "Add one or more reasons",
-					minPanelCount: 1,
-					maxPanelCount: 10,
-					allowAddPanel: true,
-					allowRemovePanel: true,
-					panelAddText: "Add reason",
-					panelRemoveText: "Remove",
-					templateTitle: "Reason #{panelIndex}",
-					templateElements: [
-						{ type: "text", name: "reasonText", title: "Reason", isRequired: true, maxLength: 300 },
-						{
-							type: "dropdown",
-							name: "reasonType",
-							title: "Type",
-							isRequired: true,
-							choices: [
-								{ value: "Q", text: "Quality" },
-								{ value: "C", text: "Cost" },
-								{ value: "T", text: "Timing" },
-							],
-							hasOther: true,
-							otherText: "Other (specify)",
-						},
-					],
-				},
-
-				{ type: "comment", name: "notes", title: "Notes" },
-			],
-		},
-	],
-	showQuestionNumbers: "off",
-};
-
-const menuDataGetMap = {
-	suppliers: "get-suppliers",
-	customers: "get-customers",
-	"special-products": "get-special-products",
-	"raw-materials": "get-raw-materials",
-	"purchase-documents": "get-purchase-documents",
-	"sale-documents": "get-sale-documents",
-	"production-documents": "get-production-documents",
-	"adjustment-documents": "get-adjustment-documents",
-};
-
-const menuDataDeleteMap = {
-	suppliers: "delete-supplier",
-	customers: "delete-customer",
-	"special-products": "delete-special-product",
-	"raw-materials": "delete-raw-material",
-	"purchase-documents": "delete-document",
-	"sale-documents": "delete-document",
-	"production-documents": "delete-document",
-	"adjustment-documents": "delete-document",
-};
-
-type MenuId = keyof typeof menuDataGetMap;
 
 @Component({
 	selector: "app-root",
-	imports: [Menu, FormsModule, FontAwesomeModule, AgTable, SurveyModule],
+	imports: [Menu, FormsModule, FontAwesomeModule, AgTable, SurveyModule, NgxSpinnerModule],
 	templateUrl: "./app.html",
 })
 export class App {
 	readonly isMenuOpen = signal(true);
 	readonly isCreateOpen = signal(false);
 
-	surveyModel = new Model(createSurveyJson);
-
 	backdropVisible = computed(() => this.isMenuOpen() || this.isCreateOpen());
 
 	prismaService = inject(DataService);
+	spinnerService = inject(NgxSpinnerService);
+	toastrService = inject(ToastrService);
+
+	surveyModel: Model = {} as Model;
+
+	spinnerName = "app-spinner";
+
+	private showSpinner() {
+		this.spinnerService.show(this.spinnerName, {
+			type: "ball-atom",
+			zIndex: 20,
+			bdColor: "rgba(0, 0, 0, 0.8)",
+			size: "large",
+			color: "#fff",
+			fullScreen: true,
+		});
+	}
+
+	private hideSpinner() {
+		this.spinnerService.hide(this.spinnerName);
+	}
 
 	bars = faBars;
 	trash = faTrash;
@@ -136,9 +74,30 @@ export class App {
 		this.isMenuOpen.set(v);
 	}
 
-	createClicked() {
+	async createClicked() {
+		const surveyForm = menuDataMap[this.selectedMneuItem()?.id as MenuId].create.surveyForm;
+
+		this.surveyModel = new Model(surveyForm);
+
+		this.surveyModel.applyTheme(PlainDarkPanelless);
 		this.isCreateOpen.set(true);
 		this.surveyModel.onComplete.add(this.onSurveyComplete);
+
+		if (this.selectedMneuItem()?.id === "production-documents") {
+			this.surveyModel.onValueChanged.add(async (_, options) => {
+				if (options.name === "recipeId" && options.value) {
+					const lines = await this.prismaService.getPrismaData(`get-recipe-materials/${options.value}`);
+
+					this.surveyModel.setValue(
+						"ingredients",
+						lines.map((line: any) => ({
+							materialId: line.id,
+							materialTitle: line.name,
+						})),
+					);
+				}
+			});
+		}
 	}
 
 	rowClicked($event: any) {
@@ -152,8 +111,11 @@ export class App {
 
 		const id = this.selectedRowData().id;
 
-		const _ = await this.prismaService.deletePrismaData(menuDataDeleteMap[this.selectedMneuItem()?.id as MenuId], id);
+		this.showSpinner();
+		const _ = await this.prismaService.deletePrismaData(menuDataMap[this.selectedMneuItem()?.id as MenuId].delete, id);
+		this.hideSpinner();
 
+		this.toastrService.success(`Deleted item with ID ${id}`, "Item Deleted");
 		await this.showData();
 	}
 
@@ -164,14 +126,33 @@ export class App {
 	}
 
 	async showData() {
-		const data = await this.prismaService.getPrismaData(menuDataGetMap[this.selectedMneuItem()?.id as MenuId]);
+		this.showSpinner();
+		const data = await this.prismaService.getPrismaData(menuDataMap[this.selectedMneuItem()?.id as MenuId].get);
+		this.hideSpinner();
+
+		this.toastrService.success(`Loaded ${data.length} items`, "Data Loaded");
 		this.rowData.set(data);
 	}
 
-	onSurveyComplete = (sender: Model) => {
+	async sleep(ms: number) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
+
+	onSurveyComplete = async (sender: Model) => {
 		const data = sender.data as Record<string, unknown>;
 
 		console.dir(data);
+
+		const result = await this.prismaService.postPrismaData(
+			menuDataMap[this.selectedMneuItem()?.id as MenuId].create.endpoint,
+			data,
+		);
+		if (result) {
+      console.dir(result);
+			await this.showData();
+		} else {
+			this.toastrService.error("Failed to create item", "Error");
+		}
 
 		this.isCreateOpen.set(false);
 

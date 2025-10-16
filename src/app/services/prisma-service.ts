@@ -10,10 +10,26 @@ export class DataService {
 		return await res.json();
 	}
 
-  async deletePrismaData(key: string, id: number) {
-    const res = await fetch(`${baseUrl}/${key}/${id}`, {
-      method: "DELETE",
-    });
-    return await res.json();
-  }
+	async deletePrismaData(key: string, id: number) {
+		const res = await fetch(`${baseUrl}/${key}/${id}`, {
+			method: "DELETE",
+		});
+		return await res.json();
+	}
+
+	async postPrismaData(key: string, data: any) {
+		try {
+			const res = await fetch(`${baseUrl}/${key}`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(data),
+			});
+			return await res.json();
+		} catch (error) {
+      console.error("Error posting data:", error);
+			return null;
+		}
+	}
 }
