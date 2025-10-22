@@ -3,10 +3,7 @@ import { AgGridAngular } from "ag-grid-angular";
 import {
 	AllCommunityModule,
 	type ColDef,
-	colorSchemeDarkBlue,
-	// colorSchemeLight,
-	// colorSchemeLightWarm,
-	// colorSchemeDarkWarm,
+	colorSchemeVariable,
 	type GridOptions,
 	ModuleRegistry,
 	type RowClickedEvent,
@@ -22,7 +19,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 	templateUrl: "./ag-table.html",
 })
 export class AgTable<T extends object> {
-	themeAlpine = themeAlpine.withPart(colorSchemeDarkBlue);
+	themeAlpine = themeAlpine.withPart(colorSchemeVariable);
 
 	rowClicked = output<T>();
 
@@ -54,6 +51,7 @@ export class AgTable<T extends object> {
 		pagination: true,
 		paginationPageSize: 10,
 		paginationPageSizeSelector: [10, 15, 20, 50],
+		autoSizeStrategy: { type: "fitCellContents" },
 	};
 
 	onRowClicked(event: RowClickedEvent) {

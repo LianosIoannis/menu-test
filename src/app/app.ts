@@ -57,7 +57,6 @@ export class App {
 	rowData = signal<any[]>([]);
 
 	selectedRowData = signal<any>(null);
-
 	selectedMneuItem = signal<MenuItemModel | null>(null);
 
 	onBackdropClick() {
