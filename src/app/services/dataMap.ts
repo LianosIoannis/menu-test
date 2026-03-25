@@ -92,6 +92,15 @@ export const menuDataMap = () => ({
 			endpoint: "",
 		},
 	},
+  "lot-trace": {
+		get: "get-lot-usage-documents",
+		delete: "",
+		create: {
+			surveyFunction: "",
+			surveyForm: "",
+			endpoint: "",
+		},
+	},
 });
 
 export type MenuId = keyof ReturnType<typeof menuDataMap>;

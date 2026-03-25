@@ -1,17 +1,27 @@
 import { Component, computed, input, output, type Signal } from "@angular/core";
 import { AgGridAngular } from "ag-grid-angular";
 import {
-	AllCommunityModule,
+	ClientSideRowModelModule,
 	type ColDef,
+	ColumnAutoSizeModule,
 	colorSchemeVariable,
 	type GridOptions,
 	ModuleRegistry,
+	PaginationModule,
 	type RowClickedEvent,
+	RowSelectionModule,
 	type RowSelectionOptions,
+	TextFilterModule,
 	themeAlpine,
 } from "ag-grid-community";
 
-ModuleRegistry.registerModules([AllCommunityModule]);
+ModuleRegistry.registerModules([
+	ClientSideRowModelModule,
+	PaginationModule,
+	TextFilterModule,
+	RowSelectionModule,
+	ColumnAutoSizeModule,
+]);
 
 @Component({
 	selector: "app-ag-table",
