@@ -3,7 +3,7 @@ import { baseUrl } from "../environment";
 
 export type ApiResponse = {
 	success: boolean;
-	data?: unknown;
+	data?: any;
 	error?: string;
 };
 
@@ -35,7 +35,7 @@ export class DataService {
 		}
 	}
 
-	async postPrismaData(key: string, data: unknown): Promise<ApiResponse> {
+	async postPrismaData(key: string, data: any): Promise<ApiResponse> {
 		try {
 			const res = await fetch(`${baseUrl}${key}`, {
 				method: "POST",
