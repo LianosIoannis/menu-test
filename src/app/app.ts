@@ -57,7 +57,7 @@ export class App {
 	rowData = signal<any[]>([]);
 
 	selectedRowData = signal<any>(null);
-	selectedMneuItem = signal<MenuItemModel | null>(null);
+	selectedMenuItem = signal<MenuItemModel | null>(null);
 
 	onBackdropClick() {
 		if (this.isCreateOpen()) {
@@ -74,10 +74,10 @@ export class App {
 	}
 
 	async createClicked() {
-		const selectedMenuItemId = this.selectedMneuItem()?.id as MenuId;
+		const selectedMenuItemId = this.selectedMenuItem()?.id as MenuId;
 
 		const menuDataMapValues = menuDataMap()[selectedMenuItemId];
-		if (!menuDataMapValues || !menuDataMap()[this.selectedMneuItem()?.id as MenuId].create.endpoint) {
+		if (!menuDataMapValues || !menuDataMap()[this.selectedMenuItem()?.id as MenuId].create.endpoint) {
 			return;
 		}
 
@@ -99,7 +99,7 @@ export class App {
 			console.dir(data);
 
 			const result = await this.prismaService.postPrismaData(
-				menuDataMap()[this.selectedMneuItem()?.id as MenuId].create.endpoint,
+				menuDataMap()[this.selectedMenuItem()?.id as MenuId].create.endpoint,
 				data,
 			);
 
@@ -131,7 +131,7 @@ export class App {
 			return;
 		}
 
-		const selectedMenuItemId = this.selectedMneuItem()?.id as MenuId;
+		const selectedMenuItemId = this.selectedMenuItem()?.id as MenuId;
 
 		const menuDataMapValues = menuDataMap()[selectedMenuItemId];
 		if (!menuDataMapValues || !menuDataMapValues.delete) {
@@ -154,14 +154,14 @@ export class App {
 	}
 
 	async menuItemClicked(item: MenuItemModel) {
-		this.selectedMneuItem.set(item);
+		this.selectedMenuItem.set(item);
 		await this.getData();
 		this.toggleMenu(false);
 	}
 
 	async getData() {
 		this.showSpinner();
-		const data = await this.prismaService.getPrismaData(menuDataMap()[this.selectedMneuItem()?.id as MenuId].get);
+		const data = await this.prismaService.getPrismaData(menuDataMap()[this.selectedMenuItem()?.id as MenuId].get);
 
 		if (data.error === "No connection") {
 			this.toastrService.error("Failed to connect to the server", "Connection Error");
